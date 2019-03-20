@@ -28,11 +28,12 @@ def binary_classification_metrics(prediction, ground_truth):
             if pred_y: fn += 1
             else: tn += 1
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
+    eps = 1e-9 # for numerical stability, taken from https://github.com/fastai/fastai/blob/ba64dd4bc4a5f9e3ea9294b4cf2e7c4928d70483/fastai/metrics.py#L18
+    precision = tp / (tp + fp + eps)
+    recall = tp / (tp + fn + eps)
     accuracy = (tp + tn) / len(prediction)
 
-    f1 = 2 * precision * recall / (precision + recall)
+    f1 = 2 * precision * recall / (precision + recall + eps)
 
     return precision, recall, f1, accuracy
 
