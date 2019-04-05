@@ -18,7 +18,13 @@ class TwoLayerNet:
         """
         self.reg = reg
         # TODO Create necessary layers
-        raise Exception("Not implemented!)"
+
+        self.layers = [
+           #FullyConnectedLayer(n_input, n_output),
+           FullyConnectedLayer(n_input, hidden_layer_size),
+           ReLULayer(),
+           FullyConnectedLayer(hidden_layer_size, n_output),
+        ]
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -33,14 +39,31 @@ class TwoLayerNet:
         # clear parameter gradients aggregated from the previous pass
         # TODO Set parameter gradient to zeros
         # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
-        
+
+        for param in self.params().values():
+            param.reset_grad()
+
         # TODO Compute loss and fill param gradients
         # by running forward and backward passes through the model
 
+        layer_X = X
+        for layer in self.layers:
+            layer_X = layer.forward(layer_X)
+
+        output = layer_X
+        loss, d_output = softmax_with_cross_entropy(output, y)
+
+        d_layer = d_output
+        for layer in reversed(self.layers):
+            d_layer = layer.backward(d_layer)
+
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
+
+        for param in self.params().values():
+            reg_loss, reg_grad = l2_regularization(param.value, self.reg)
+            loss += reg_loss
+            param.grad += reg_grad
 
         return loss
 
@@ -59,7 +82,12 @@ class TwoLayerNet:
         # can be reused
         pred = np.zeros(X.shape[0], np.int)
 
-        raise Exception("Not implemented!")
+        layer_X = X
+        for layer in self.layers:
+            layer_X = layer.forward(layer_X)
+        output = layer_X
+        pred = output.argmax(1)
+
         return pred
 
     def params(self):
@@ -67,6 +95,8 @@ class TwoLayerNet:
 
         # TODO Implement aggregating all of the params
 
-        raise Exception("Not implemented!")
+        for i, layer in enumerate(self.layers):
+            for key, param in layer.params().items():
+                result[f'{key}.{i}'] = param
 
         return result
